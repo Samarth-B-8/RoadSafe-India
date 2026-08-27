@@ -1,0 +1,5 @@
+analysis,correlation,p_value
+Population vs Accidents,0.6714992084187104,7.348784179124586e-06
+Population vs Fatalities,0.9076183543570744,2.2691899472700245e-14
+Accidents vs Fatalities,0.8631637400002038,1.2663753712320374e-11
+Accidents vs Fatalities after accounting for Population,0.8155646774744334,1.3747151692593811e-09
