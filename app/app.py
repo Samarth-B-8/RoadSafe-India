@@ -5,18 +5,18 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-# Project path
+# PROJECT PATH
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# RoadSafe imports
+# ROADSAFE IMPORTS
 
 from src.data_loader import load_master_data
 
-# Page configuration
+# PAGE CONFIGURATION
 
 st.set_page_config(
     page_title="RoadSafe India",
@@ -24,11 +24,11 @@ st.set_page_config(
     layout="wide"
 )
 
-# Load data
+# LOAD MASTER DATASET
 
 df = load_master_data()
 
-# Title
+# HEADER
 
 st.title("RoadSafe India")
 
@@ -102,6 +102,8 @@ fatality_columns = [
 
 years = [2020, 2021, 2022, 2023, 2024]
 
+# National accident totals
+
 national_accidents = pd.DataFrame({
     "Year": years,
     "Reported Accidents": df[
@@ -109,12 +111,16 @@ national_accidents = pd.DataFrame({
     ].sum().values
 })
 
+# National fatality totals
+
 national_fatalities = pd.DataFrame({
     "Year": years,
     "Reported Fatalities": df[
         fatality_columns
     ].sum().values
 })
+
+# Plot national trends
 
 chart_col1, chart_col2 = st.columns(2)
 
@@ -136,7 +142,6 @@ with chart_col1:
         accident_fig,
         use_container_width=True
     )
-
 
 with chart_col2:
 
@@ -174,7 +179,8 @@ metric_options = {
 
 selected_metric = st.selectbox(
     "Select metric:",
-    list(metric_options.keys())
+    list(metric_options.keys()),
+    key="comparison_metric"
 )
 
 selected_column = metric_options[selected_metric]
@@ -183,7 +189,8 @@ top_n = st.slider(
     "Number of States/UTs to display:",
     min_value=5,
     max_value=20,
-    value=10
+    value=10,
+    key="comparison_top_n"
 )
 
 comparison_df = (
@@ -214,8 +221,323 @@ st.plotly_chart(
     use_container_width=True
 )
 
-# STATE/UT TABLE
- 
+# STATE PROFILE
+
+st.header("State/UT Profile")
+
+selected_state = st.selectbox(
+    "Select a State/UT:",
+    sorted(
+        df["state"]
+        .dropna()
+        .unique()
+    ),
+    key="selected_state"
+)
+
+# Get selected State
+
+state_data = df[
+    df["state"] == selected_state
+].iloc[0]
+
+# STATE METRICS
+
+profile_col1, profile_col2, profile_col3, profile_col4, profile_col5 = (
+    st.columns(5)
+)
+
+with profile_col1:
+    st.metric(
+        "2024 Accidents",
+        f"{state_data['2024_accidents']:,.0f}"
+    )
+
+with profile_col2:
+    st.metric(
+        "2024 Fatalities",
+        f"{state_data['2024_killed']:,.0f}"
+    )
+
+with profile_col3:
+    st.metric(
+        "Accidents / 100k Population",
+        f"{state_data['accidents_per_100k_population']:.2f}"
+    )
+
+with profile_col4:
+    st.metric(
+        "Fatalities / 100k Population",
+        f"{state_data['fatalities_per_100k_population']:.2f}"
+    )
+
+with profile_col5:
+    st.metric(
+        "Fatalities / 100 Accidents",
+        f"{state_data['fatalities_per_100_accidents']:.2f}"
+    )
+
+# NATIONAL BENCHMARKING
+
+st.subheader(
+    f"{selected_state} — National Comparison"
+)
+
+# Average State/UT values
+
+average_accidents_per_state = (
+    df["2024_accidents"].mean()
+)
+
+average_fatalities_per_state = (
+    df["2024_killed"].mean()
+)
+
+average_accident_rate = (
+    df["accidents_per_100k_population"].mean()
+)
+
+average_fatality_rate = (
+    df["fatalities_per_100k_population"].mean()
+)
+
+# State rankings
+
+accident_ranks = (
+    df["2024_accidents"]
+    .rank(
+        ascending=False,
+        method="min"
+    )
+)
+
+fatality_ranks = (
+    df["2024_killed"]
+    .rank(
+        ascending=False,
+        method="min"
+    )
+)
+
+accident_rate_ranks = (
+    df["accidents_per_100k_population"]
+    .rank(
+        ascending=False,
+        method="min"
+    )
+)
+
+fatality_rate_ranks = (
+    df["fatalities_per_100k_population"]
+    .rank(
+        ascending=False,
+        method="min"
+    )
+)
+
+accident_rank = accident_ranks[
+    df["state"] == selected_state
+].iloc[0]
+
+fatality_rank = fatality_ranks[
+    df["state"] == selected_state
+].iloc[0]
+
+accident_rate_rank = accident_rate_ranks[
+    df["state"] == selected_state
+].iloc[0]
+
+fatality_rate_rank = fatality_rate_ranks[
+    df["state"] == selected_state
+].iloc[0]
+
+# Display rankings
+
+benchmark_col1, benchmark_col2, benchmark_col3, benchmark_col4 = (
+    st.columns(4)
+)
+
+with benchmark_col1:
+    st.metric(
+        "Accident Rank",
+        f"{int(accident_rank)} / {len(df)}"
+    )
+
+with benchmark_col2:
+    st.metric(
+        "Fatality Rank",
+        f"{int(fatality_rank)} / {len(df)}"
+    )
+
+with benchmark_col3:
+    st.metric(
+        "Accident Rate Rank",
+        f"{int(accident_rate_rank)} / {len(df)}"
+    )
+
+with benchmark_col4:
+    st.metric(
+        "Fatality Rate Rank",
+        f"{int(fatality_rate_rank)} / {len(df)}"
+    )
+
+# STATE VS AVERAGE TABLE
+
+benchmark_data = pd.DataFrame({
+    "Metric": [
+        "Reported Accidents",
+        "Reported Fatalities",
+        "Accidents per 100k Population",
+        "Fatalities per 100k Population"
+    ],
+    selected_state: [
+        state_data["2024_accidents"],
+        state_data["2024_killed"],
+        state_data["accidents_per_100k_population"],
+        state_data["fatalities_per_100k_population"]
+    ],
+    "Average State/UT": [
+        average_accidents_per_state,
+        average_fatalities_per_state,
+        average_accident_rate,
+        average_fatality_rate
+    ]
+})
+
+# Create a separate display copy.
+# This prevents us from changing numerical data
+# into strings inside the analytical DataFrame.
+
+display_benchmark = benchmark_data.copy()
+
+display_benchmark[selected_state] = (
+    display_benchmark[selected_state]
+    .map(lambda x: f"{x:,.2f}")
+)
+
+display_benchmark["Average State/UT"] = (
+    display_benchmark["Average State/UT"]
+    .map(lambda x: f"{x:,.2f}")
+)
+
+st.dataframe(
+    display_benchmark,
+    use_container_width=True,
+    hide_index=True
+)
+
+# STATE VS AVERAGE CHART
+
+benchmark_chart_df = pd.DataFrame({
+    "Metric": [
+        "Accidents",
+        "Fatalities"
+    ],
+    selected_state: [
+        state_data["2024_accidents"],
+        state_data["2024_killed"]
+    ],
+    "Average State/UT": [
+        average_accidents_per_state,
+        average_fatalities_per_state
+    ]
+})
+
+benchmark_long = benchmark_chart_df.melt(
+    id_vars="Metric",
+    var_name="Group",
+    value_name="Value"
+)
+
+benchmark_fig = px.bar(
+    benchmark_long,
+    x="Metric",
+    y="Value",
+    color="Group",
+    barmode="group",
+    title=f"{selected_state} vs Average State/UT"
+)
+
+st.plotly_chart(
+    benchmark_fig,
+    use_container_width=True
+)
+
+# STATE TRENDS
+st.subheader(
+    f"{selected_state} — Historical Trends"
+)
+
+# Accident trend
+
+state_accident_trend = pd.DataFrame({
+    "Year": years,
+    "Reported Accidents": [
+        state_data["2020_accidents"],
+        state_data["2021_accidents"],
+        state_data["2022_accidents"],
+        state_data["2023_accidents"],
+        state_data["2024_accidents"]
+    ]
+})
+
+# Fatality trend
+
+state_fatality_trend = pd.DataFrame({
+    "Year": years,
+    "Reported Fatalities": [
+        state_data["2020_killed"],
+        state_data["2021_killed"],
+        state_data["2022_killed"],
+        state_data["2023_killed"],
+        state_data["2024_killed"]
+    ]
+})
+
+# Plot State trends
+
+trend_col1, trend_col2 = st.columns(2)
+
+with trend_col1:
+
+    state_accident_fig = px.line(
+        state_accident_trend,
+        x="Year",
+        y="Reported Accidents",
+        markers=True,
+        title=f"{selected_state} — Reported Accidents"
+    )
+
+    state_accident_fig.update_layout(
+        xaxis=dict(dtick=1)
+    )
+
+    st.plotly_chart(
+        state_accident_fig,
+        use_container_width=True
+    )
+
+with trend_col2:
+
+    state_fatality_fig = px.line(
+        state_fatality_trend,
+        x="Year",
+        y="Reported Fatalities",
+        markers=True,
+        title=f"{selected_state} — Reported Fatalities"
+    )
+
+    state_fatality_fig.update_layout(
+        xaxis=dict(dtick=1)
+    )
+
+    st.plotly_chart(
+        state_fatality_fig,
+        use_container_width=True
+    )
+
+# STATE/UT DATA TABLE
+
 st.header("State/UT Data")
 
 display_columns = [
