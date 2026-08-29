@@ -5,6 +5,8 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+import json
+
 # PROJECT PATH
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -220,7 +222,191 @@ st.plotly_chart(
     comparison_fig,
     use_container_width=True
 )
+# =======================================================
+# GEOGRAPHIC VIEW
+# =======================================================
 
+st.header("Geographic View — 2024")
+
+import json
+
+
+# -------------------------------------------------------
+# Load dissolved State/UT GeoJSON
+# -------------------------------------------------------
+
+geojson_path = (
+    PROJECT_ROOT
+    / "data"
+    / "external"
+    / "india_states_final.geojson"
+)
+
+
+if not geojson_path.exists():
+
+    st.error(
+        "State-level GeoJSON file was not found."
+    )
+
+else:
+
+    with open(
+        geojson_path,
+        "r",
+        encoding="utf-8"
+    ) as file:
+
+        india_geojson = json.load(file)
+
+
+    # ---------------------------------------------------
+    # Prepare map DataFrame
+    # ---------------------------------------------------
+
+    map_df = df.copy()
+
+
+    # ---------------------------------------------------
+    # RoadSafe → GeoJSON name mapping
+    # ---------------------------------------------------
+
+    map_name_mapping = {
+
+    "Andaman & Nicobar Islands":
+        "Andaman and Nicobar",
+
+    "N.C.T of Delhi":
+        "Delhi",
+
+    "Jammu & Kashmir":
+        "Jammu and Kashmir",
+    }
+
+    map_df["map_state"] = (
+        map_df["state"]
+        .astype(str)
+        .str.strip()
+        .replace(map_name_mapping)
+    )
+
+
+    # ---------------------------------------------------
+    # Add normalized GeoJSON key
+    # ---------------------------------------------------
+
+    for feature in india_geojson["features"]:
+
+        state_name = (
+            feature
+            .get("properties", {})
+            .get("state", "")
+        )
+
+        feature.setdefault(
+            "properties",
+            {}
+        )["_map_state"] = state_name.strip()
+
+
+    # ---------------------------------------------------
+    # Map metric selector
+    # ---------------------------------------------------
+
+    map_metric_options = {
+
+        "Reported Accidents":
+            "2024_accidents",
+
+        "Reported Fatalities":
+            "2024_killed",
+
+        "Accidents per 100k Population":
+            "accidents_per_100k_population",
+
+        "Fatalities per 100k Population":
+            "fatalities_per_100k_population"
+    }
+
+
+    selected_map_metric = st.selectbox(
+        "Select map metric:",
+        list(map_metric_options.keys()),
+        key="map_metric"
+    )
+
+
+    selected_map_column = (
+        map_metric_options[selected_map_metric]
+    )
+
+
+    # ---------------------------------------------------
+    # Create State-level choropleth
+    # ---------------------------------------------------
+
+    map_fig = px.choropleth(
+        map_df,
+
+        geojson=india_geojson,
+
+        locations="map_state",
+
+        featureidkey="properties._map_state",
+
+        color=selected_map_column,
+
+        hover_name="state",
+
+        hover_data={
+            "map_state": False,
+            "2024_accidents": ":,.0f",
+            "2024_killed": ":,.0f",
+            "accidents_per_100k_population": ":.2f",
+            "fatalities_per_100k_population": ":.2f",
+            "fatalities_per_100_accidents": ":.2f"
+        },
+
+        title=f"2024 — {selected_map_metric}",
+
+        color_continuous_scale="Viridis"
+    )
+
+
+    # ---------------------------------------------------
+    # Map appearance
+    # ---------------------------------------------------
+
+    map_fig.update_geos(
+        fitbounds="locations",
+        visible=False
+    )
+
+
+    map_fig.update_layout(
+        margin=dict(
+            l=0,
+            r=0,
+            t=55,
+            b=0
+        )
+    )
+
+
+    # ---------------------------------------------------
+    # Display map
+    # ---------------------------------------------------
+
+    st.plotly_chart(
+        map_fig,
+        width="stretch"
+    )
+
+
+    st.caption(
+        "Map geometry: State/UT boundaries. "
+        "Analytical values: RoadSafe master dataset."
+    )  
 # STATE PROFILE
 
 st.header("State/UT Profile")
