@@ -22,6 +22,10 @@ if str(PROJECT_ROOT) not in sys.path:
 # =======================================================
 
 from src.data_loader import load_master_data
+from src.insights import (
+    generate_overview_insights,
+    accident_fatality_correlation
+)
 
 
 # =======================================================
@@ -523,7 +527,24 @@ if page == "📊 Overview":
             fatality_fig,
             width="stretch"
         )
+    # =======================================================
+    # KEY INSIGHTS
+    # =======================================================
 
+    st.header("Key Insights")
+
+    overview_insights = generate_overview_insights(df)
+    correlation = accident_fatality_correlation(df)
+
+    st.info(
+        "Reported accidents and reported fatalities show "
+        f"a Pearson correlation of {correlation:.3f} across "
+        "States/UTs in 2024."
+    )
+
+    for insight in overview_insights:
+
+        st.info(insight)
 
 # =======================================================
 # PAGE 2 — STATE COMPARISON
