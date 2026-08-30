@@ -6,20 +6,14 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-
-# =======================================================
 # PROJECT PATH
-# =======================================================
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-
-# =======================================================
 # ROADSAFE IMPORTS
-# =======================================================
 
 from src.data_loader import load_master_data
 from src.insights import (
@@ -27,10 +21,7 @@ from src.insights import (
     accident_fatality_correlation
 )
 
-
-# =======================================================
 # PAGE CONFIGURATION
-# =======================================================
 
 st.set_page_config(
     page_title="RoadSafe India",
@@ -38,9 +29,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# =======================================================
 # CUSTOM STYLING
-# =======================================================
 
 st.markdown(
     """
@@ -54,13 +43,11 @@ st.markdown(
         padding-right: 3rem;
     }
 
-
     /* Main page title */
     h1 {
         font-size: 2.5rem;
         font-weight: 700;
     }
-
 
     /* Section headings */
     h2 {
@@ -68,11 +55,9 @@ st.markdown(
         margin-bottom: 1rem;
     }
 
-
     h3 {
         margin-top: 1.5rem;
     }
-
 
     /* Sidebar */
     [data-testid="stSidebar"] {
@@ -83,7 +68,6 @@ st.markdown(
         padding: 1.5rem 1rem 1rem 1rem;
     }
 
-
     /* Brand */
 
     .sidebar-brand {
@@ -93,12 +77,10 @@ st.markdown(
         margin-bottom: 0.8rem;
     }
 
-
     .brand-icon {
         font-size: 2rem;
         line-height: 1;
     }
-
 
     .brand-title {
         font-size: 1.25rem;
@@ -106,14 +88,12 @@ st.markdown(
         letter-spacing: -0.02em;
     }
 
-
     .brand-subtitle {
         font-size: 0.72rem;
         margin-top: 0.15rem;
         opacity: 0.65;
         letter-spacing: 0.04em;
     }
-
 
     /* Description */
 
@@ -268,16 +248,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# =======================================================
 # LOAD MASTER DATA
-# =======================================================
 
 df = load_master_data()
 
-
-# =======================================================
 # CONSTANTS
-# =======================================================
 
 ACCIDENT_COLUMNS = [
     "2020_accidents",
@@ -298,13 +273,7 @@ FATALITY_COLUMNS = [
 YEARS = [2020, 2021, 2022, 2023, 2024]
 
 
-# =======================================================
 # SIDEBAR
-# =======================================================
-
-# =======================================================
-# SIDEBAR
-# =======================================================
 
 st.sidebar.markdown(
     """
@@ -414,16 +383,12 @@ if page == "📊 Overview":
         across Indian States/UTs using publicly available data.
         """
     )
-
-
-    # ---------------------------------------------------
+  
     # 2024 overview
-    # ---------------------------------------------------
-
+    
     st.header("India — 2024 Overview")
 
     col1, col2, col3, col4 = st.columns(4)
-
 
     with col1:
 
@@ -432,7 +397,6 @@ if page == "📊 Overview":
             f"{df['state'].nunique()}"
         )
 
-
     with col2:
 
         st.metric(
@@ -440,14 +404,12 @@ if page == "📊 Overview":
             f"{df['2024_accidents'].sum():,.0f}"
         )
 
-
     with col3:
 
         st.metric(
             "2024 Reported Fatalities",
             f"{df['2024_killed'].sum():,.0f}"
         )
-
 
     with col4:
 
@@ -462,13 +424,9 @@ if page == "📊 Overview":
             f"{fatalities_per_100:.2f}"
         )
 
-
-    # ---------------------------------------------------
     # National trends
-    # ---------------------------------------------------
-
+   
     st.header("National Trends — 2020 to 2024")
-
 
     national_accidents = pd.DataFrame({
         "Year": YEARS,
@@ -477,7 +435,6 @@ if page == "📊 Overview":
         ].sum().values
     })
 
-
     national_fatalities = pd.DataFrame({
         "Year": YEARS,
         "Reported Fatalities": df[
@@ -485,9 +442,7 @@ if page == "📊 Overview":
         ].sum().values
     })
 
-
     chart_col1, chart_col2 = st.columns(2)
-
 
     with chart_col1:
 
@@ -508,7 +463,6 @@ if page == "📊 Overview":
             width="stretch"
         )
 
-
     with chart_col2:
 
         fatality_fig = px.line(
@@ -527,9 +481,8 @@ if page == "📊 Overview":
             fatality_fig,
             width="stretch"
         )
-    # =======================================================
+
     # KEY INSIGHTS
-    # =======================================================
 
     st.header("Key Insights")
 
@@ -561,7 +514,6 @@ elif page == "📈 State Comparison":
         """
     )
 
-
     metric_options = {
 
         "Reported Accidents":
@@ -580,12 +532,10 @@ elif page == "📈 State Comparison":
             "fatalities_per_100_accidents"
     }
 
-
     selected_metric = st.selectbox(
         "Select metric:",
         list(metric_options.keys())
     )
-
 
     selected_column = (
         metric_options[selected_metric]
@@ -598,7 +548,6 @@ elif page == "📈 State Comparison":
         max_value=20,
         value=10
     )
-
 
     comparison_df = (
         df[
@@ -615,7 +564,6 @@ elif page == "📈 State Comparison":
         )
     )
 
-
     comparison_fig = px.bar(
         comparison_df,
         x=selected_column,
@@ -627,15 +575,12 @@ elif page == "📈 State Comparison":
         )
     )
 
-
     st.plotly_chart(
         comparison_fig,
         width="stretch"
     )
 
-
     st.subheader("State/UT Data")
-
 
     display_columns = [
         "state",
@@ -645,7 +590,6 @@ elif page == "📈 State Comparison":
         "fatalities_per_100k_population",
         "fatalities_per_100_accidents"
     ]
-
 
     st.dataframe(
         df[
@@ -657,7 +601,6 @@ elif page == "📈 State Comparison":
         width="stretch",
         hide_index=True
     )
-
 
 # =======================================================
 # PAGE 3 — GEOGRAPHIC VIEW
@@ -674,10 +617,7 @@ elif page == "🗺️ Geographic View":
         """
     )
 
-
-    # ---------------------------------------------------
     # GeoJSON path
-    # ---------------------------------------------------
 
     geojson_path = (
         PROJECT_ROOT
@@ -703,10 +643,7 @@ elif page == "🗺️ Geographic View":
 
             india_geojson = json.load(file)
 
-
-        # ------------------------------------------------
         # RoadSafe → GeoJSON names
-        # ------------------------------------------------
 
         map_name_mapping = {
 
@@ -723,9 +660,7 @@ elif page == "🗺️ Geographic View":
                 "Uttaranchal"
         }
 
-
         map_df = df.copy()
-
 
         map_df["map_state"] = (
             map_df["state"]
@@ -734,10 +669,7 @@ elif page == "🗺️ Geographic View":
             .replace(map_name_mapping)
         )
 
-
-        # ------------------------------------------------
         # Create map key in GeoJSON
-        # ------------------------------------------------
 
         for feature in india_geojson["features"]:
 
@@ -754,10 +686,7 @@ elif page == "🗺️ Geographic View":
                 state_name.strip()
             )
 
-
-        # ------------------------------------------------
         # Map metric
-        # ------------------------------------------------
 
         map_metric_options = {
 
@@ -774,12 +703,10 @@ elif page == "🗺️ Geographic View":
                 "fatalities_per_100k_population"
         }
 
-
         selected_map_metric = st.selectbox(
             "Select map metric:",
             list(map_metric_options.keys())
         )
-
 
         selected_map_column = (
             map_metric_options[
@@ -787,10 +714,7 @@ elif page == "🗺️ Geographic View":
             ]
         )
 
-
-        # ------------------------------------------------
         # Map
-        # ------------------------------------------------
 
         map_fig = px.choropleth(
             map_df,
@@ -871,20 +795,15 @@ elif page == "🔎 State Profile":
         df["state"] == selected_state
     ].iloc[0]
 
-
-    # ---------------------------------------------------
     # State metrics
-    # ---------------------------------------------------
 
     st.subheader(
         f"{selected_state} — 2024 Metrics"
     )
 
-
     col1, col2, col3, col4, col5 = (
         st.columns(5)
     )
-
 
     with col1:
 
@@ -893,14 +812,12 @@ elif page == "🔎 State Profile":
             f"{state_data['2024_accidents']:,.0f}"
         )
 
-
     with col2:
 
         st.metric(
             "Reported Fatalities",
             f"{state_data['2024_killed']:,.0f}"
         )
-
 
     with col3:
 
@@ -909,14 +826,12 @@ elif page == "🔎 State Profile":
             f"{state_data['accidents_per_100k_population']:.2f}"
         )
 
-
     with col4:
 
         st.metric(
             "Fatalities / 100k",
             f"{state_data['fatalities_per_100k_population']:.2f}"
         )
-
 
     with col5:
 
@@ -925,10 +840,7 @@ elif page == "🔎 State Profile":
             f"{state_data['fatalities_per_100_accidents']:.2f}"
         )
 
-
-    # ---------------------------------------------------
     # State rankings
-    # ---------------------------------------------------
 
     accident_rank = (
         df["2024_accidents"]
@@ -941,7 +853,6 @@ elif page == "🔎 State Profile":
         .iloc[0]
     )
 
-
     fatality_rank = (
         df["2024_killed"]
         .rank(
@@ -952,7 +863,6 @@ elif page == "🔎 State Profile":
         ]
         .iloc[0]
     )
-
 
     accident_rate_rank = (
         df["accidents_per_100k_population"]
@@ -965,7 +875,6 @@ elif page == "🔎 State Profile":
         .iloc[0]
     )
 
-
     fatality_rate_rank = (
         df["fatalities_per_100k_population"]
         .rank(
@@ -977,16 +886,13 @@ elif page == "🔎 State Profile":
         .iloc[0]
     )
 
-
     st.subheader(
         f"{selected_state} — National Ranking"
     )
 
-
     rank_col1, rank_col2, rank_col3, rank_col4 = (
         st.columns(4)
     )
-
 
     with rank_col1:
 
@@ -995,14 +901,12 @@ elif page == "🔎 State Profile":
             f"{int(accident_rank)} / {len(df)}"
         )
 
-
     with rank_col2:
 
         st.metric(
             "Fatality Rank",
             f"{int(fatality_rank)} / {len(df)}"
         )
-
 
     with rank_col3:
 
@@ -1011,7 +915,6 @@ elif page == "🔎 State Profile":
             f"{int(accident_rate_rank)} / {len(df)}"
         )
 
-
     with rank_col4:
 
         st.metric(
@@ -1019,10 +922,7 @@ elif page == "🔎 State Profile":
             f"{int(fatality_rate_rank)} / {len(df)}"
         )
 
-
-    # ---------------------------------------------------
     # State vs average
-    # ---------------------------------------------------
 
     average_accidents = (
         df["2024_accidents"].mean()
@@ -1039,7 +939,6 @@ elif page == "🔎 State Profile":
     average_fatality_rate = (
         df["fatalities_per_100k_population"].mean()
     )
-
 
     benchmark_data = pd.DataFrame({
 
@@ -1065,9 +964,7 @@ elif page == "🔎 State Profile":
         ]
     })
 
-
     display_benchmark = benchmark_data.copy()
-
 
     display_benchmark[selected_state] = (
         display_benchmark[selected_state]
@@ -1076,7 +973,6 @@ elif page == "🔎 State Profile":
         )
     )
 
-
     display_benchmark["Average State/UT"] = (
         display_benchmark["Average State/UT"]
         .map(
@@ -1084,22 +980,17 @@ elif page == "🔎 State Profile":
         )
     )
 
-
     st.dataframe(
         display_benchmark,
         width="stretch",
         hide_index=True
     )
 
-
-    # ---------------------------------------------------
     # State trends
-    # ---------------------------------------------------
 
     st.subheader(
         f"{selected_state} — Historical Trends"
     )
-
 
     state_accident_trend = pd.DataFrame({
 
@@ -1114,7 +1005,6 @@ elif page == "🔎 State Profile":
         ]
     })
 
-
     state_fatality_trend = pd.DataFrame({
 
         "Year": YEARS,
@@ -1128,9 +1018,7 @@ elif page == "🔎 State Profile":
         ]
     })
 
-
     trend_col1, trend_col2 = st.columns(2)
-
 
     with trend_col1:
 
@@ -1198,23 +1086,23 @@ elif page == "ℹ️ About RoadSafe":
 
     st.markdown(
         """
-        **Accident burden**
+        - **Accident burden:**
         
         The number of reported road accidents across States/UTs.
 
-        **Fatality burden**
+        - **Fatality burden:**
         
         The number of reported road fatalities.
 
-        **Population-normalized indicators**
+        - **Population-normalized indicators:**
         
         Reported accidents and fatalities per 100,000 projected population.
 
-        **Fatality-to-accident indicator**
+        - **Fatality-to-accident indicator:**
         
         Reported fatalities per 100 reported accidents.
 
-        **Temporal trends**
+        - **Temporal trends:**
         
         Changes in reported accidents and fatalities from 2020 to 2024.
         """
@@ -1228,32 +1116,32 @@ elif page == "ℹ️ About RoadSafe":
 
     st.markdown(
         """
-        **Population is an exposure proxy, not a complete exposure measure.**
+        - **Population is an exposure proxy, not a complete exposure measure.**
         
         Population-normalized indicators do not directly capture
         vehicle-kilometres travelled, traffic volume or time spent on roads.
 
-        **The population denominator is projected.**
+        - **The population denominator is projected.**
         
         The 2024 State/UT population figures used by RoadSafe are
         projected population values rather than a 2024 Census enumeration.
 
-        **Reported data has limitations.**
+        - **Reported data has limitations.**
         
         Results depend on the underlying reporting and collection
         practices of the source datasets.
 
-        **State-level observations are aggregated.**
+        - **State-level observations are aggregated.**
         
         The statistical analysis uses State/UT-level observations rather
         than individual accident records.
 
-        **Association does not imply causation.**
+        - **Association does not imply causation.**
         
         Statistical relationships identified by RoadSafe should not be
         interpreted as evidence that one variable directly causes another.
 
-        **2020 and 2021 were exceptional years.**
+        - **2020 and 2021 were exceptional years.**
         
         Mobility conditions during this period differed substantially
         from normal conditions, so temporal comparisons should be
