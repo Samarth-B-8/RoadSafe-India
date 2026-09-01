@@ -1,0 +1,5 @@
+relationship,pearson_r,spearman_rho,spearman_p_value
+Vehicle registrations vs accidents,0.7823046287407229,,
+Vehicle registrations vs fatalities,0.9567759445634816,,
+"Vehicles per 1,000 vs accidents per 100k",0.5967899585682428,0.5557271557271558,0.0004337116213345187
+"Vehicles per 1,000 vs fatalities per 100k",0.45547853292583573,0.5526383526383526,0.00047397573163926844
