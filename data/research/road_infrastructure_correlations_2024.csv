@@ -1,0 +1,5 @@
+relationship,pearson_r,spearman_rho,spearman_p_value
+Road length vs accidents,0.721773519834712,,
+Road length vs fatalities,0.8198557995628514,,
+Road length/1000 vs accidents/100k,-0.056648172918188335,-0.04537815126050421,0.7957554247873968
+Road length/1000 vs fatalities/100k,-0.17594288084747417,-0.11288515406162467,0.5185045374517597
