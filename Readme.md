@@ -15,6 +15,21 @@ the results.
 
 ---
 
+## 🖥️ Dashboard Preview
+### Overview
+![RoadSafe India Overview](docs/dashboard-overview.png)
+
+### State Comparison
+![RoadSafe India State Comparison](docs/state-comparison.png)
+
+### Geographic View
+![RoadSafe India Geographic View](docs/geographic-view.png)
+
+### Research Insights
+![RoadSafe India Research Insights](docs/research-insights.png)
+
+---
+
 ## 📌 Problem Statement
 
 Road accidents represent an important public-safety challenge in India.
