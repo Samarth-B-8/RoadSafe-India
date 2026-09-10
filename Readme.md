@@ -2,6 +2,9 @@
 
 ## A Data-Driven Analysis of Road Accident Risk, Severity and Trends in India
 
+> 🚦 **Project Status:** Completed & Actively Maintained  
+> 📊 **36 States/UTs** | 📅 **2020–2024** | 🧪 **11 Tests Passing** | 🔬 **Research Analysis Included**
+
 RoadSafe India is a data visualization and data analysis project that
 examines reported road accidents and road fatalities across Indian
 States/UTs.
@@ -33,6 +36,34 @@ the results.
 ### 🚀 Live Dashboard
 
 [Open RoadSafe India Dashboard](https://roadsafe-india.streamlit.app/)
+
+---
+
+## 🛠️ Technologies Used
+
+- **Python** — Data analysis and processing
+- **Pandas** — Data manipulation
+- **NumPy** — Numerical computation
+- **Plotly** — Interactive visualizations
+- **Streamlit** — Interactive dashboard
+- **GeoPandas** — Geographic data processing
+- **Statsmodels** — Statistical analysis and regression
+- **Pytest** — Automated testing
+- **Git & GitHub** — Version control and project management
+
+---
+
+## ⭐ Project Highlights
+
+- **36 States/UTs** analyzed across **2020–2024**
+- **487,707 reported road accidents** and **177,175 reported fatalities** analyzed for 2024
+- Developed population-normalized safety indicators for meaningful State/UT comparison
+- Integrated **2024 vehicle exposure**, **2019 road infrastructure**, and **2011 population density** data
+- Built **3-predictor multivariable regression models** for accident and fatality rates
+- Used **HC3 robust standard errors**, multicollinearity checks, diagnostic tests, and sensitivity analysis
+- Built an interactive **Streamlit dashboard** with State comparison, geographic visualization, State profiles, and research insights
+- Added automated testing with **11 passing tests**
+- Designed the project as a **reproducible data-analysis pipeline** using Python, Git and GitHub
 
 ---
 
@@ -235,7 +266,8 @@ The statistical results represent observational State/UT-level associations
 and should not be interpreted as evidence of causation.
 
 ---
-## Research Extension
+
+## 🔬 Research Extension & Multivariable Analysis
 
 To move beyond descriptive accident statistics, RoadSafe India incorporates
 state-level exposure and structural variables to examine associations with
