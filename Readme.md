@@ -67,6 +67,14 @@ RoadSafe India is designed to answer questions such as:
 
 ---
 
+# 🗓️ Study Period
+
+**2020–2024**
+
+The analysis uses State/UT-level observations.
+
+---
+
 # 📊 Key Metrics
 
 The project uses several complementary indicators.
@@ -109,14 +117,6 @@ accidents rather than people involved in those accidents.
 
 ---
 
-# 🗓️ Study Period
-
-**2020–2024**
-
-The analysis uses State/UT-level observations.
-
----
-
 # 🔬 Methodology
 
 The project follows the following analytical pipeline:
@@ -137,9 +137,11 @@ The project follows the following analytical pipeline:
          ↓
     Accident-Fatality Relationship Analysis
          ↓
-    Statistical Analysis
+    Research Extension
          ↓
-    Master Analytical Dataset
+    Multivariable Regression
+         ↓
+    Diagnostics and Robustness
          ↓
     Interactive Dashboard
 
@@ -210,6 +212,111 @@ linear association of population with both variables.
 
 The statistical results represent observational State/UT-level associations
 and should not be interpreted as evidence of causation.
+
+---
+## Research Extension
+
+To move beyond descriptive accident statistics, RoadSafe India incorporates
+state-level exposure and structural variables to examine associations with
+population-normalized road safety outcomes.
+
+### Research Variables
+
+| Variable | Definition | Source year |
+|---|---|---:|
+| Vehicle exposure | Registered vehicles per 1,000 population | 2024 |
+| Road infrastructure | Road length per 1,000 population | 2019 |
+| Population density | Population per sq. km. | 2011 |
+
+The analysis uses:
+
+- `accidents_per_100k_population` as the accident-rate outcome
+- `fatalities_per_100k_population` as the fatality-rate outcome
+
+### Multivariable Regression
+
+Three predictors are included simultaneously:
+
+1. Vehicle registrations per 1,000 population
+2. Road length per 1,000 population
+3. Population density
+
+The primary regression models use **HC3 robust standard errors**.
+
+#### Accident-rate model
+
+- Observations: 34 states/UTs
+- R²: **0.5036**
+- Adjusted R²: **0.4539**
+
+| Predictor | Coefficient | HC3 p-value |
+|---|---:|---:|
+| Vehicle exposure | +2.9705 | **0.0030** |
+| Road-length density | −0.5668 | 0.4611 |
+| Population density | −0.0058 | 0.0540 |
+
+#### Fatality-rate model
+
+- Observations: 34 states/UTs
+- R²: **0.4844**
+- Adjusted R²: **0.4328**
+
+| Predictor | Coefficient | HC3 p-value |
+|---|---:|---:|
+| Vehicle exposure | +0.3893 | **0.0038** |
+| Road-length density | −0.2242 | 0.3076 |
+| Population density | −0.0012 | **0.0209** |
+
+### Key Findings
+
+- Vehicle exposure shows a **positive and statistically significant association**
+  with both accident and fatality rates.
+- Population density shows a **negative association**, with stronger statistical
+  evidence for fatality rates.
+- Road-length density does not show a consistently significant independent
+  association after controlling for the other predictors.
+- Adding population density significantly improves both the accident-rate and
+  fatality-rate models.
+- Sensitivity analysis shows that vehicle exposure remains positive and
+  statistically significant after excluding influential states.
+- Log-transformed outcome models provide broadly consistent robustness evidence.
+
+### Model Diagnostics
+
+The regression analysis includes:
+
+- Variance Inflation Factor (VIF)
+- Pearson and Spearman predictor correlations
+- Breusch–Pagan heteroskedasticity test
+- Omnibus and Jarque–Bera residual-normality tests
+- Cook's distance influence analysis
+- Same-sample nested-model comparisons
+- Log-outcome robustness analysis
+
+The three predictors showed low multicollinearity, with VIF values between
+approximately **1.10 and 1.27**.
+
+### Important Limitations
+
+The research extension is **observational and associational**, not causal.
+
+The predictor variables come from different source years:
+
+- Vehicle exposure: 2024
+- Road infrastructure: 2019
+- Population density: 2011
+
+Therefore, the models should not be interpreted as causal or predictive models.
+
+The supplied Census 2011 source does not provide separate observations for
+**Ladakh** or **Telangana**. These states are therefore excluded from the
+regression analyses requiring population density rather than being assigned
+fabricated or imputed values.
+
+Several observations, particularly **Goa, Arunachal Pradesh, and Delhi**, show
+relatively high influence in some regression specifications. Their influence
+was evaluated through sensitivity analysis rather than removing them from the
+primary model.
 
 ---
 
@@ -333,14 +440,15 @@ RoadSafe-India/
 ├── data/
 │   ├── raw/
 │   ├── processed/
-│   └── external/
+│   |── external/
+|   └── research/
 │
 ├── notebooks/
 │   ├── 01_data_understanding.ipynb
 │   ├── 02_data_cleaning.ipynb
 │   ├── 03_eda.ipynb
 │   ├── ...
-│   └── 12_statistical_analysis.ipynb
+│   └── 17_population_density_data.ipynb
 │
 ├── src/
 │   ├── data_loader.py
