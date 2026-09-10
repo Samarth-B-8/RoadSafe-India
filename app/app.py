@@ -252,6 +252,61 @@ st.markdown(
 
 df = load_master_data()
 
+# RESEARCH DATA
+research_data_path = (
+    PROJECT_ROOT
+    / "data"
+    / "research"
+    / "integrated_research_dataset_2024.csv"
+)
+
+regression_results_path = (
+    PROJECT_ROOT
+    / "data"
+    / "research"
+    / "final_3predictor_regression_results.csv"
+)
+
+log_regression_results_path = (
+    PROJECT_ROOT
+    / "data"
+    / "research"
+    / "log_3predictor_regression_results.csv"
+)
+
+research_df = (
+    pd.read_csv(research_data_path)
+    if research_data_path.exists()
+    else pd.DataFrame()
+)
+
+regression_results_df = (
+    pd.read_csv(regression_results_path)
+    if regression_results_path.exists()
+    else pd.DataFrame()
+)
+
+log_regression_results_df = (
+    pd.read_csv(log_regression_results_path)
+    if log_regression_results_path.exists()
+    else pd.DataFrame()
+)
+
+
+def format_p_value(value):
+    if pd.isna(value):
+        return "—"
+    if value < 0.001:
+        return "<0.001"
+    return f"{value:.4f}"
+
+
+def format_coefficient(value):
+    if pd.isna(value):
+        return "—"
+    return f"{value:+.4f}"
+
+
 # CONSTANTS
 
 ACCIDENT_COLUMNS = [
@@ -319,6 +374,7 @@ page = st.sidebar.radio(
         "📈 State Comparison",
         "🗺️ Geographic View",
         "🔎 State Profile",
+        "🔬 Research Insights",
         "ℹ️ About RoadSafe"
     ],
     label_visibility="collapsed"
@@ -1067,7 +1123,435 @@ elif page == "🔎 State Profile":
 
 
 # =======================================================
-# PAGE 5 — ABOUT
+# PAGE 5 — RESEARCH INSIGHTS
+# =======================================================
+
+elif page == "🔬 Research Insights":
+
+    st.title("Research Insights")
+
+    st.markdown(
+        """
+        Explore how vehicle exposure, road infrastructure and population
+        density are associated with population-normalized road-safety outcomes.
+        """
+    )
+
+    st.info(
+        "This page presents observational State/UT-level associations. "
+        "The regression models are not causal or predictive models."
+    )
+
+    if research_df.empty or regression_results_df.empty:
+        st.error(
+            "Research datasets were not found. Please ensure the research "
+            "CSV files are present in data/research/."
+        )
+    else:
+
+        # ---------------------------------------------------
+        # Research coverage and model KPIs
+        # ---------------------------------------------------
+
+        regression_complete = research_df[
+            [
+                "vehicles_per_1000_population",
+                "road_length_per_1000_population",
+                "population_density_2011"
+            ]
+        ].dropna()
+
+        accident_results = regression_results_df[
+            regression_results_df["Outcome"] == "Accident rate"
+        ].copy()
+
+        fatality_results = regression_results_df[
+            regression_results_df["Outcome"] == "Fatality rate"
+        ].copy()
+
+        accident_r2 = (
+            accident_results["R2"].iloc[0]
+            if not accident_results.empty
+            else float("nan")
+        )
+
+        fatality_r2 = (
+            fatality_results["R2"].iloc[0]
+            if not fatality_results.empty
+            else float("nan")
+        )
+
+        st.subheader("Research Scope")
+
+        scope_col1, scope_col2, scope_col3, scope_col4 = st.columns(4)
+
+        with scope_col1:
+            st.metric(
+                "States / UTs in Master",
+                f"{research_df['state'].nunique()}"
+            )
+
+        with scope_col2:
+            st.metric(
+                "Regression States",
+                f"{len(regression_complete)}"
+            )
+
+        with scope_col3:
+            st.metric(
+                "Accident Model R²",
+                f"{accident_r2:.3f}"
+            )
+
+        with scope_col4:
+            st.metric(
+                "Fatality Model R²",
+                f"{fatality_r2:.3f}"
+            )
+
+        st.caption(
+            "Primary regression sample: 34 States/UTs. "
+            "Telangana and Ladakh are excluded because the supplied "
+            "Census 2011 source does not provide separate usable density values."
+        )
+
+        # ---------------------------------------------------
+        # Research variables
+        # ---------------------------------------------------
+
+        st.subheader("Research Variables")
+
+        research_variables_df = pd.DataFrame({
+            "Variable": [
+                "Vehicle exposure",
+                "Road infrastructure",
+                "Population density"
+            ],
+            "Measure": [
+                "Registered vehicles per 1,000 population",
+                "Road length per 1,000 population",
+                "Population per sq. km."
+            ],
+            "Source year": [
+                2024,
+                2019,
+                2011
+            ]
+        })
+
+        st.dataframe(
+            research_variables_df,
+            width="stretch",
+            hide_index=True
+        )
+
+        st.caption(
+            "The predictors come from different source years and therefore "
+            "represent exposure/structural context rather than a synchronized "
+            "single-year measurement."
+        )
+
+        # ---------------------------------------------------
+        # Interactive association explorer
+        # ---------------------------------------------------
+
+        st.subheader("Explore Variable Associations")
+
+        predictor_options = {
+            "Vehicle exposure": "vehicles_per_1000_population",
+            "Road infrastructure": "road_length_per_1000_population",
+            "Population density (2011)": "population_density_2011"
+        }
+
+        outcome_options = {
+            "Accident rate": "accidents_per_100k_population",
+            "Fatality rate": "fatalities_per_100k_population"
+        }
+
+        explorer_col1, explorer_col2 = st.columns(2)
+
+        with explorer_col1:
+            selected_predictor_label = st.selectbox(
+                "Predictor:",
+                list(predictor_options.keys())
+            )
+
+        with explorer_col2:
+            selected_outcome_label = st.selectbox(
+                "Outcome:",
+                list(outcome_options.keys())
+            )
+
+        selected_predictor = predictor_options[
+            selected_predictor_label
+        ]
+
+        selected_outcome = outcome_options[
+            selected_outcome_label
+        ]
+
+        plot_df = research_df[
+            [
+                "state",
+                selected_predictor,
+                selected_outcome
+            ]
+        ].dropna().copy()
+
+        association = plot_df[
+            selected_predictor
+        ].corr(
+            plot_df[selected_outcome]
+        )
+
+        scatter_col1, scatter_col2 = st.columns([4, 1])
+
+        with scatter_col1:
+
+            scatter_fig = px.scatter(
+                plot_df,
+                x=selected_predictor,
+                y=selected_outcome,
+                hover_name="state",
+                title=(
+                    f"{selected_predictor_label} vs "
+                    f"{selected_outcome_label}"
+                )
+            )
+
+            scatter_fig.update_layout(
+                margin=dict(
+                    l=20,
+                    r=20,
+                    t=55,
+                    b=20
+                )
+            )
+
+            st.plotly_chart(
+                scatter_fig,
+                width="stretch"
+            )
+
+        with scatter_col2:
+
+            st.metric(
+                "Pearson correlation",
+                f"{association:.3f}"
+            )
+
+            st.caption(
+                f"Based on {len(plot_df)} State/UT observations."
+            )
+
+        # ---------------------------------------------------
+        # Regression results
+        # ---------------------------------------------------
+
+        st.subheader("Primary Multivariable Regression")
+
+        st.caption(
+            "Three predictors are entered simultaneously. "
+            "Reported p-values use HC3 robust standard errors."
+        )
+
+        model_tab1, model_tab2 = st.tabs(
+            [
+                "Accident rate",
+                "Fatality rate"
+            ]
+        )
+
+        for model_tab, outcome_name, result_df in [
+            (
+                model_tab1,
+                "Accident rate",
+                accident_results
+            ),
+            (
+                model_tab2,
+                "Fatality rate",
+                fatality_results
+            )
+        ]:
+
+            with model_tab:
+
+                if result_df.empty:
+                    st.warning(
+                        "Regression results for this model are unavailable."
+                    )
+                    continue
+
+                result_display = result_df[
+                    result_df["Variable"] != "const"
+                ][
+                    [
+                        "Variable",
+                        "Coefficient",
+                        "Robust_SE",
+                        "p_value"
+                    ]
+                ].copy()
+
+                variable_labels = {
+                    "vehicles_per_1000_population":
+                        "Vehicle exposure",
+                    "road_length_per_1000_population":
+                        "Road infrastructure",
+                    "population_density_2011":
+                        "Population density"
+                }
+
+                result_display["Variable"] = (
+                    result_display["Variable"]
+                    .replace(variable_labels)
+                )
+
+                result_display["Coefficient"] = (
+                    result_display["Coefficient"]
+                    .map(format_coefficient)
+                )
+
+                result_display["Robust_SE"] = (
+                    result_display["Robust_SE"]
+                    .map(lambda x: f"{x:.4f}")
+                )
+
+                result_display["HC3 p-value"] = (
+                    result_display["p_value"]
+                    .map(format_p_value)
+                )
+
+                result_display = result_display.drop(
+                    columns=["p_value"]
+                )
+
+                st.dataframe(
+                    result_display,
+                    width="stretch",
+                    hide_index=True
+                )
+
+                model_meta_col1, model_meta_col2 = st.columns(2)
+
+                with model_meta_col1:
+                    st.metric(
+                        "R²",
+                        f"{result_df['R2'].iloc[0]:.4f}"
+                    )
+
+                with model_meta_col2:
+                    st.metric(
+                        "Adjusted R²",
+                        f"{result_df['Adjusted_R2'].iloc[0]:.4f}"
+                    )
+
+        # ---------------------------------------------------
+        # Key findings
+        # ---------------------------------------------------
+
+        st.subheader("What the Research Model Suggests")
+
+        finding_col1, finding_col2, finding_col3 = st.columns(3)
+
+        with finding_col1:
+
+            st.markdown("**Vehicle exposure**")
+
+            st.write(
+                "Higher registered vehicles per 1,000 population are "
+                "positively associated with both accident and fatality rates."
+            )
+
+        with finding_col2:
+
+            st.markdown("**Population density**")
+
+            st.write(
+                "Population density shows a negative association, with "
+                "stronger statistical evidence for fatality rates."
+            )
+
+        with finding_col3:
+
+            st.markdown("**Road infrastructure**")
+
+            st.write(
+                "Road length per 1,000 population does not show a "
+                "consistently significant independent association in the "
+                "primary models."
+            )
+
+        # ---------------------------------------------------
+        # Diagnostics and robustness
+        # ---------------------------------------------------
+
+        with st.expander("Diagnostics & Robustness"):
+
+            st.markdown(
+                """
+                **Multicollinearity**
+
+                The three predictors showed low multicollinearity, with VIF
+                values approximately between **1.10 and 1.27**.
+
+                **Heteroskedasticity**
+
+                Breusch–Pagan tests did not indicate evidence of
+                heteroskedasticity in the primary accident or fatality models.
+
+                **Residual normality**
+
+                The accident-rate model shows clear residual non-normality,
+                while the fatality-rate model shows no strong evidence of
+                residual non-normality.
+
+                **Influential observations**
+
+                Goa, Arunachal Pradesh and Delhi are relatively influential in
+                some model specifications. Sensitivity analysis was performed
+                rather than removing these States/UTs from the primary model.
+
+                **Robustness**
+
+                Log-transformed outcome models broadly preserve the central
+                finding that vehicle exposure is positively associated with
+                both outcomes, while population density has stronger evidence
+                for fatality rates.
+                """
+            )
+
+        # ---------------------------------------------------
+        # Research dataset
+        # ---------------------------------------------------
+
+        with st.expander("State-level Research Dataset"):
+
+            research_display_columns = [
+                "state",
+                "vehicles_per_1000_population",
+                "road_length_per_1000_population",
+                "population_density_2011",
+                "accidents_per_100k_population",
+                "fatalities_per_100k_population"
+            ]
+
+            research_display = research_df[
+                research_display_columns
+            ].sort_values(
+                "state"
+            ).copy()
+
+            st.dataframe(
+                research_display,
+                width="stretch",
+                hide_index=True
+            )
+
+
+# =======================================================
+# PAGE 6 — ABOUT
 # =======================================================
 
 elif page == "ℹ️ About RoadSafe":
